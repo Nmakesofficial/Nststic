@@ -7,45 +7,59 @@ interface UpgradeModalProps {
 }
 
 export const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose }) => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [message, setMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email) {
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    
+    const name = formData.get('name') as string;
+    const email = formData.get('email') as string;
+    const phone = formData.get('phone') as string;
+    const message = formData.get('message') as string;
+
+    if (!name.trim() || !email.trim()) {
       setError('يرجى ملء اسمك وبريدك الإلكتروني.');
       return;
     }
     setError('');
-    setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSuccess(true);
-      setTimeout(() => {
-        handleClose();
-      }, 3000);
-    }, 1500);
+    const recipient = 'nmakesofficial@gmail.com';
+    const subject = encodeURIComponent('NStatic Pro Upgrade Request');
+    const body = encodeURIComponent(
+`Hello,
+
+I would like to upgrade to NStatic Pro.
+
+Here are my details:
+Name: ${name}
+Email: ${email}
+Phone: ${phone || 'Not provided'}
+Message: ${message || 'Not provided'}
+
+Thank you,
+${name}`
+    );
+
+    const mailtoLink = `mailto:${recipient}?subject=${subject}&body=${body}`;
+    window.location.href = mailtoLink;
+    handleClose();
   };
   
   const handleClose = () => {
     onClose();
     // Reset state after modal closes
     setTimeout(() => {
-        setName('');
-        setEmail('');
-        setPhone('');
-        setMessage('');
-        setIsSuccess(false);
         setError('');
     }, 300);
   }
+
+  const handleInputChange = () => {
+    if (error) {
+        setError('');
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -63,17 +77,10 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose }) =
           <XMarkIcon className="w-6 h-6" />
         </button>
 
-        {isSuccess ? (
-          <div className="p-8 text-center flex flex-col items-center justify-center min-h-[24rem]">
-            <CheckCircleIcon className="w-16 h-16 text-green-400 mb-4" />
-            <h2 className="text-2xl font-bold text-slate-100">تم استلام الطلب!</h2>
-            <p className="text-slate-400 mt-2">شكرًا لك! سنتصل بك قريبًا لوضع اللمسات الأخيرة على ترقيتك.</p>
-          </div>
-        ) : (
-          <div className="p-6 sm:p-8">
+        <div className="p-6 sm:p-8">
             <div className="flex items-center space-x-3 rtl:space-x-reverse mb-2">
-              <SparklesIcon className="w-8 h-8 text-violet-400"/>
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-100">الترقية إلى NStatic Pro</h2>
+                <SparklesIcon className="w-8 h-8 text-violet-400"/>
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-100">الترقية إلى NStatic Pro</h2>
             </div>
             <p className="text-slate-400 mb-6">احصل على وصول غير محدود ودعم ذي أولوية عن طريق ترقية خطتك.</p>
 
@@ -102,35 +109,36 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose }) =
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 border-t border-slate-700/60 pt-6">
-              <div>
+                <div>
                 <label htmlFor="name" className="block text-sm font-medium text-slate-400 mb-1">الاسم الكامل</label>
-                <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} required className="form-input" />
-              </div>
-              <div>
+                <input type="text" id="name" name="name" required className="form-input" onChange={handleInputChange} />
+                </div>
+                <div>
                 <label htmlFor="email" className="block text-sm font-medium text-slate-400 mb-1">البريد الإلكتروني</label>
-                <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="form-input" />
-              </div>
-              <div>
+                <input type="email" id="email" name="email" required className="form-input" onChange={handleInputChange} />
+                </div>
+                <div>
                 <label htmlFor="phone" className="block text-sm font-medium text-slate-400 mb-1">رقم الهاتف (اختياري)</label>
-                <input type="tel" id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="form-input" />
-              </div>
-              <div>
+                <input type="tel" id="phone" name="phone" className="form-input" onChange={handleInputChange} />
+                </div>
+                <div>
                 <label htmlFor="message" className="block text-sm font-medium text-slate-400 mb-1">رسالة (اختياري)</label>
-                <textarea id="message" value={message} onChange={(e) => setMessage(e.target.value)} rows={2} className="form-input"></textarea>
-              </div>
-              {error && <p className="text-red-400 text-sm">{error}</p>}
-              <button type="submit" disabled={isSubmitting} className="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center disabled:bg-slate-600 disabled:cursor-not-allowed">
-                {isSubmitting ? (
-                    <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin ml-2"></div>
-                        جار الإرسال...
-                    </>
-                ) : 'إرسال طلب الترقية'}
-              </button>
+                <textarea id="message" name="message" rows={2} className="form-input" onChange={handleInputChange}></textarea>
+                </div>
+
+                {error && (
+                <div className="bg-red-900/50 border border-red-500/50 text-red-300 text-sm p-3 rounded-lg">
+                    <p>{error}</p>
+                </div>
+                )}
+
+                <button type="submit" className="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center">
+                    إرسال طلب الترقية
+                </button>
             </form>
-          </div>
-        )}
-         <style jsx>{`
+        </div>
+        
+         <style>{`
             .form-input {
                 width: 100%;
                 background-color: #1e293b; /* bg-slate-800 */
