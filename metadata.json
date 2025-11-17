@@ -1,0 +1,5 @@
+{
+  "name": "NStatic Website Builder",
+  "description": "An AI-powered chat interface to generate, preview, and download static websites. Users can describe their desired website, upload images, and get a complete code package instantly.",
+  "requestFramePermissions": []
+}
